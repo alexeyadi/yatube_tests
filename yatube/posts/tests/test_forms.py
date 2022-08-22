@@ -1,11 +1,6 @@
-import shutil
-import tempfile
-
-from posts.forms import PostForm
 from posts.models import Post
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TestCase
 from django.urls import reverse
 
 # TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -29,7 +24,7 @@ class PostFormTests(TestCase):
 
     def test_create_post(self):
         """Валидная форма создает запись в Post."""
-        posts_count = Post.objects.count()  
+        posts_count = Post.objects.count()
         form_data = {
             # 'author': 'auth',
             'text': 'Тестовый текст',
@@ -39,8 +34,9 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, reverse('posts:profile', kwargs={'username': f'{self.user}'}))
-        self.assertEqual(Post.objects.count(), posts_count+1)
+        self.assertRedirects(response, reverse(
+            'posts:profile', kwargs={'username': f'{self.user}'}))
+        self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
                 text='Тестовый текст',
