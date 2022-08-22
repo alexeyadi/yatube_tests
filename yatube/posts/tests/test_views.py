@@ -35,25 +35,48 @@ class PostPagesTest(TestCase):
         self.post_author = Client()
         self.post_author.force_login(self.author)
 
+    # def test_pages_and_url(self):
+    #     """Каждый URL используется правильный шаблон"""
+    #     templates = {
+    #         'posts/index.html': reverse('posts:index'),
+    #         'posts/group_list.html': reverse(
+    #             'posts:group_list', kwargs={'slug': 'test-slug'}
+    #         ),
+    #         'posts/profile.html': reverse(
+    #             'posts:profile', kwargs={'username': 'auth'}
+    #         ),
+    #         'posts/post_detail.html': reverse(
+    #             'posts:post_detail', args={f'{self.post.id}'}
+    #         ),
+    #         'posts/create_post.html': reverse(
+    #             'posts:post_edit', args={f'{self.post.id}'}
+    #         ),
+    #         'posts/create_post.html': reverse('posts:post_create'),
+    #     }
+    #     for template, name in templates.items():
+    #         with self.subTest(reverse_name=name):
+    #             response = self.auth_client.get(name)
+    #             self.assertTemplateUsed(response, template)
+            
     def test_pages_and_url(self):
         """Каждый URL используется правильный шаблон"""
         templates = {
-            'posts/index.html': reverse('posts:index'),
-            'posts/group_list.html': reverse(
+            reverse('posts:index'): 'posts/index.html',
+            reverse(
                 'posts:group_list', kwargs={'slug': 'test-slug'}
-            ),
-            'posts/profile.html': reverse(
+            ): 'posts/group_list.html',
+            reverse(
                 'posts:profile', kwargs={'username': 'auth'}
-            ),
-            'posts/post_detail.html': reverse(
+            ): 'posts/profile.html',
+            reverse(
                 'posts:post_detail', args={f'{self.post.id}'}
-            ),
-            'posts/create_post.html': reverse(
+            ): 'posts/post_detail.html',
+            reverse(
                 'posts:post_edit', args={f'{self.post.id}'}
-            ),
-            'posts/create_post.html': reverse('posts:post_create'),
+            ): 'posts/create_post.html',
+            reverse('posts:post_create'): 'posts/create_post.html',
         }
-        for template, name in templates.items():
+        for name, template in templates.items():
             with self.subTest(reverse_name=name):
                 response = self.auth_client.get(name)
                 self.assertTemplateUsed(response, template)
