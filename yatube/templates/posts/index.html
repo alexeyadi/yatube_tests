@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}
+  Последние обновления на сайте
+{% endblock %}
+{% block content %}
+  <h1> Главная страница </h1>
+  {% for post in page_obj %}
+    {% include 'includes/article.html' %}
+  {% endfor %}
+  {% include 'posts/includes/paginator.html' %}
+{% endblock %}
