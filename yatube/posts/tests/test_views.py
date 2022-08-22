@@ -57,7 +57,7 @@ class PostPagesTest(TestCase):
     #         with self.subTest(reverse_name=name):
     #             response = self.auth_client.get(name)
     #             self.assertTemplateUsed(response, template)
-            
+
     def test_pages_and_url(self):
         """Каждый URL используется правильный шаблон"""
         templates = {
