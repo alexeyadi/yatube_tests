@@ -75,7 +75,7 @@ def tech(request):
 @login_required
 def post_create(request):
     template = 'posts/create_post.html'
-    form = PostForm(files=request.FILES or None,)
+    form = PostForm()
     context = {
         'form': form,
     }
@@ -97,7 +97,6 @@ def post_edit(request, post_id):
     if request.method == 'POST':
         form = PostForm(
             request.POST,
-            files=request.FILES or None,
             instance=post
         )
         context = {
