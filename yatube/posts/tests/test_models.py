@@ -5,6 +5,8 @@ from ..models import Group, Post
 
 User = get_user_model()
 
+SIMBOLS = 15
+
 
 class PostModelTest(TestCase):
     @classmethod
@@ -19,12 +21,13 @@ class PostModelTest(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='Тестовый пост',
+            group=cls.group,
         )
 
     def test_models_have_correct_object_names(self):
         """Проверяем, что у Post корректно работает __str__."""
         post = PostModelTest.post
-        max_text = post.text[:15]
+        max_text = post.text[:SIMBOLS]
         length_text = len(post.text)
         self.assertEqual(len(max_text), length_text, 'Что-то не так')
 

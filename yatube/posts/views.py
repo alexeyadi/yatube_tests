@@ -75,7 +75,7 @@ def tech(request):
 @login_required
 def post_create(request):
     template = 'posts/create_post.html'
-    form = PostForm()
+    form = PostForm(files=request.FILES or None,)
     context = {
         'form': form,
     }
@@ -95,7 +95,8 @@ def post_edit(request, post_id):
     template = 'posts/create_post.html'
     post = get_object_or_404(Post, pk=post_id)
     if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
+        form = PostForm(
+            request.POST, files=request.FILES or None, instance=post)
         context = {
             'form': form,
             'post': post,
@@ -109,7 +110,7 @@ def post_edit(request, post_id):
             post.save()
             return redirect('posts:post_detail', post_id)
         return render(request, template, context)
-    form = PostForm(instance=post)
+    form = PostForm(instance=post, files=request.FILES or None,)
     context = {
         'form': form,
         'post': post,

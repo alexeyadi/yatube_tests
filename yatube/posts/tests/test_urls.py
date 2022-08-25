@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
+from http import HTTPStatus
 
 from posts.models import Post, Group
 
@@ -30,51 +31,38 @@ class PostURLTests(TestCase):
         self.post_author = Client()
         self.post_author.force_login(self.author)
 
-    def test_home_page(self):
-        """Главная доступна любому пользователю"""
-        response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
+    def test_pages_for_guest(self):
+        """Доступность страниц для гостя"""
+        urls = {
+            '/',
+            '/group/test-slug/',
+            '/profile/auth/',
+            f'/posts/{PostURLTests.post.id}/',
+        }
+        for url in urls:
+            response = self.guest_client.get(url)
+            self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_group_list_page(self):
-        """Проверка доступности страницы группы"""
-        response = self.guest_client.get('/group/test-slug/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_profile_page(self):
-        """Проверка доступности страницы автора"""
-        response = self.guest_client.get('/profile/auth/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_post_detail_page(self):
-        """Проверка доступности страницы поста"""
-        response = self.guest_client.get(f'/posts/{PostURLTests.post.id}/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_posts_edit_page(self):
-        """Проверка страницы редактирования поста"""
-        response = self.guest_client.get(
-            f'/posts/{PostURLTests.post.id}/edit/', follow=True
-        )
-        self.assertRedirects(
-            response, (
-                f'/auth/login/?next=/posts/{PostURLTests.post.id}/edit/'
-            )
-        )
+    def test_posts_edit_and_create_page(self):
+        """Проверка создания и редактирования страницы редактирования для гостя"""
+        url_redirect = {
+            f'/posts/{PostURLTests.post.id}/edit/': f'/auth/login/?next=/posts/{PostURLTests.post.id}/edit/',
+            '/create/': '/auth/login/?next=/create/',
+        }
+        for url, redirect in url_redirect.items():
+            with self.subTest(address=url):
+                response = self.guest_client.get(url)
+                self.assertRedirects(response, redirect)
 
     def test_post_edit_page_for_author(self):
         """Проверка страницы редактирования поста для автора этого поста"""
         response = self.post_author.get(f'/posts/{PostURLTests.post.id}/edit/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_create_page(self):
-        """Проверка страницы создания поста"""
-        response = self.guest_client.get('/create/')
-        self.assertRedirects(response, ('/auth/login/?next=/create/'))
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_create_post_for_auth_client(self):
         """Проверка страницы создания поста для авторизованного пользователя"""
         response = self.auth_client.get('/create/')
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_404(self):
         """Проверка страницы 404"""
@@ -92,5 +80,17 @@ class PostURLTests(TestCase):
         }
         for url, template in templates_url_names.items():
             with self.subTest(address=url):
-                response_non_auth = self.auth_client.get(url)
-                self.assertTemplateUsed(response_non_auth, template)
+                response = self.auth_client.get(url)
+                self.assertTemplateUsed(response, template)
+
+    def test_urls_uses_correct(self):
+        templates_url_names = {
+            '/': 'posts/index.html',
+            '/group/test-slug/': 'posts/group_list.html',
+            '/profile/auth/': 'posts/profile.html',
+            f'/posts/{PostURLTests.post.id}/': 'posts/post_detail.html',
+        }
+        for url, template in templates_url_names.items():
+            with self.subTest(address=url):
+                response = self.guest_client.get(url)
+                self.assertTemplateUsed(response, template)

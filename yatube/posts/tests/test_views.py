@@ -35,31 +35,8 @@ class PostPagesTest(TestCase):
         self.post_author = Client()
         self.post_author.force_login(self.author)
 
-    # def test_pages_and_url(self):
-    #     """Каждый URL используется правильный шаблон"""
-    #     templates = {
-    #         'posts/index.html': reverse('posts:index'),
-    #         'posts/group_list.html': reverse(
-    #             'posts:group_list', kwargs={'slug': 'test-slug'}
-    #         ),
-    #         'posts/profile.html': reverse(
-    #             'posts:profile', kwargs={'username': 'auth'}
-    #         ),
-    #         'posts/post_detail.html': reverse(
-    #             'posts:post_detail', args={f'{self.post.id}'}
-    #         ),
-    #         'posts/create_post.html': reverse(
-    #             'posts:post_edit', args={f'{self.post.id}'}
-    #         ),
-    #         'posts/create_post.html': reverse('posts:post_create'),
-    #     }
-    #     for template, name in templates.items():
-    #         with self.subTest(reverse_name=name):
-    #             response = self.auth_client.get(name)
-    #             self.assertTemplateUsed(response, template)
-
-    def test_pages_and_url(self):
-        """Каждый URL используется правильный шаблон"""
+    def test_pages_and_url_for_auth_client(self):
+        """Каждый URL используется правильный шаблон для авторизованного"""
         templates = {
             reverse('posts:index'): 'posts/index.html',
             reverse(
@@ -79,6 +56,25 @@ class PostPagesTest(TestCase):
         for name, template in templates.items():
             with self.subTest(reverse_name=name):
                 response = self.auth_client.get(name)
+                self.assertTemplateUsed(response, template)
+
+    def test_pages_and_url_for_guest(self):
+        """Каждый URL использует правильный шаблон для гостя"""
+        templates = {
+            reverse('posts:index'): 'posts/index.html',
+            reverse(
+                'posts:group_list', kwargs={'slug': 'test-slug'}
+            ): 'posts/group_list.html',
+            reverse(
+                'posts:profile', kwargs={'username': 'auth'}
+            ): 'posts/profile.html',
+            reverse(
+                'posts:post_detail', args={f'{self.post.id}'}
+            ): 'posts/post_detail.html',
+        }
+        for name, template in templates.items():
+            with self.subTest(reverse_name=name):
+                response = self.guest_client.get(name)
                 self.assertTemplateUsed(response, template)
 
     def test_index_page_context(self):
@@ -130,7 +126,6 @@ class PostPagesTest(TestCase):
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,
         }
-
         for value, expected in form_fields.items():
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
@@ -167,60 +162,19 @@ class PaginatorViewsTest(TestCase):
             slug='test-slug',
             description='Тестовое описание',
         )
-        for i in range(13):
-            cls.post = Post.objects.create(
+        cls.posts = [
+            Post(
                 author=cls.user,
                 text=f'Тестовый текст {i}',
                 group=cls.group,
-            )
+            ) for i in range(13)
+        ]
+        cls.post = Post.objects.bulk_create(cls.posts)
 
     def setUp(self):
         self.guest_client = Client()
         self.auth_client = Client()
         self.auth_client.force_login(self.user)
-
-    # Оставляю на всякий случай, вдруг нижний вариант кривой :)
-    # Удалю после отмашки - Лёха, всё путем, удаляй этот код,
-    # корректировать будем другой :)
-    # def test_first_page_contains_ten_records(self):
-    #     response = self.auth_client.get(reverse('posts:index'))
-    #     self.assertEqual(len(response.context['page_obj']), COUNT_POSTS)
-
-    # def test_second_page_contains_three_records(self):
-    #     response = self.auth_client.get(reverse('posts:index') + '?page=2')
-    #     self.assertEqual(len(response.context['page_obj']), (
-    #         self.post.author.posts.count() - COUNT_POSTS)
-    #     )
-
-    # def test_first_page_contains_ten_records(self):
-    #     response = self.auth_client.get(reverse(
-    #       'posts:group_list', kwargs={'slug': 'test-slug'})
-    #       )
-    #     self.assertEqual(len(response.context['page_obj']), COUNT_POSTS)
-
-    # def test_second_page_contains_three_records(self):
-    #     response = self.auth_client.get(
-    #         reverse('posts:group_list', kwargs={
-    # 'slug': 'test-slug'
-    # }) + '?page=2'
-    #     )
-    #     self.assertEqual(len(response.context['page_obj']), (
-    #         self.post.author.posts.count() - COUNT_POSTS)
-    #     )
-
-    # def test_first_page_contains_ten_records(self):
-    #     response = self.auth_client.get(reverse('posts:profile', kwargs={
-    # 'username': f'{self.user}'
-    # }))
-    #     self.assertEqual(len(response.context['page_obj']), COUNT_POSTS)
-
-    # def test_second_page_contains_three_records(self):
-    #     response = self.auth_client.get(
-    # reverse('posts:profile', kwargs={'username': f'{self.user}'}) + '?page=2'
-    # )
-    #     self.assertEqual(len(response.context['page_obj']), (
-    #         self.post.author.posts.count() - COUNT_POSTS)
-    #     )
 
     def test_first_page_contains_ten_records(self):
         urls = {
@@ -244,4 +198,4 @@ class PaginatorViewsTest(TestCase):
             response = self.auth_client.get(name)
             self.assertEqual(len(
                 response.context['page_obj']
-            ), self.post.author.posts.count() - COUNT_POSTS)
+            ), len(self.post) - COUNT_POSTS)

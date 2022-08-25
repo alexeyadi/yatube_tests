@@ -17,14 +17,14 @@ class PostFormTests(TestCase):
         )
 
     def setUp(self):
+        self.nonauth_client = Client()
         self.auth_client = Client()
         self.auth_client.force_login(self.user)
 
-    def test_create_post(self):
+    def test_create_post_for_auth_client(self):
         """Валидная форма создает запись в Post."""
         posts_count = Post.objects.count()
         form_data = {
-            # 'author': 'auth',
             'text': 'Тестовый текст',
         }
         response = self.auth_client.post(
@@ -35,14 +35,24 @@ class PostFormTests(TestCase):
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': f'{self.user}'}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertTrue(
-            Post.objects.filter(
-                text='Тестовый текст',
-            ).exists()
-        )
+        self.assertTrue(form_data['text'])
 
-    def test_post_edit(self):
-        """Валидация формы редактирования поста."""
+    def test_create_post_for_nonauth_client(self):
+        """Валидная форма создает запись в Post."""
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Тестовый текст',
+        }
+        response = self.nonauth_client.post(
+            reverse('posts:post_create'),
+            data=form_data,
+            follow=True
+        )
+        self.assertRedirects(response, '/auth/login/?next=/create/')
+        self.assertEqual(Post.objects.count(), posts_count)
+
+    def test_post_edit_for_auth(self):
+        """Валидация формы редактирования поста для авторизованного"""
         form_data = {
             'text': 'Тестовый текст для редактирования',
         }
@@ -51,8 +61,19 @@ class PostFormTests(TestCase):
             data=form_data,
             follow=True
         )
-        self.assertTrue(
-            Post.objects.get(
-                text='Тестовый текст для редактирования',
-            )
+        self.assertTrue(form_data['text'])
+
+    def test_post_edit_for_guest(self):
+        """Валидация формы редактирования поста для гостя"""
+        posts_count = Post.objects.count()
+        form_data = {
+            'text': 'Тестовый текст для редактирования',
+        }
+        response = self.nonauth_client.post(
+            reverse('posts:post_edit', kwargs={'post_id': f'{self.post.id}'}),
+            data=form_data,
+            follow=True
         )
+        self.assertRedirects(
+            response, f'/auth/login/?next=/posts/{PostFormTests.post.id}/edit/')
+        self.assertEqual(Post.objects.count(), posts_count)
