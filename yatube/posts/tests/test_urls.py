@@ -46,7 +46,7 @@ class PostURLTests(TestCase):
     def test_posts_edit_and_create_page(self):
         """Проверка создания и редактирования страницы для гостя"""
         url_redirect = {
-            f'/posts/{PostURLTests.post.id}/edit/': 
+            f'/posts/{PostURLTests.post.id}/edit/':
             f'/auth/login/?next=/posts/{PostURLTests.post.id}/edit/',
             '/create/': '/auth/login/?next=/create/',
         }
