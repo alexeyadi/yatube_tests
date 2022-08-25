@@ -80,7 +80,7 @@ def post_create(request):
         'form': form,
     }
     if request.method == 'POST':
-        post = PostForm(request.POST, )
+        post = PostForm(request.POST)
         if post.is_valid():
             post = post.save(commit=False)
             post.author = request.user
