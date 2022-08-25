@@ -80,7 +80,7 @@ def post_create(request):
         'form': form,
     }
     if request.method == 'POST':
-        post = PostForm(request.POST)
+        post = PostForm(request.POST, files=request.FILES or None,)
         if post.is_valid():
             post = post.save(commit=False)
             post.author = request.user
@@ -112,7 +112,7 @@ def post_edit(request, post_id):
             post.save()
             return redirect('posts:post_detail', post_id)
         return render(request, template, context)
-    form = PostForm(instance=post)
+    form = PostForm(instance=post, files=request.FILES or None,)
     context = {
         'form': form,
         'post': post,
