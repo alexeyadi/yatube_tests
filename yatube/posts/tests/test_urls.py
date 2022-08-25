@@ -44,9 +44,10 @@ class PostURLTests(TestCase):
             self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_posts_edit_and_create_page(self):
-        """Проверка создания и редактирования страницы редактирования для гостя"""
+        """Проверка создания и редактирования страницы для гостя"""
         url_redirect = {
-            f'/posts/{PostURLTests.post.id}/edit/': f'/auth/login/?next=/posts/{PostURLTests.post.id}/edit/',
+            f'/posts/{PostURLTests.post.id}/edit/': 
+            f'/auth/login/?next=/posts/{PostURLTests.post.id}/edit/',
             '/create/': '/auth/login/?next=/create/',
         }
         for url, redirect in url_redirect.items():

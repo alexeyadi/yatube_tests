@@ -75,5 +75,7 @@ class PostFormTests(TestCase):
             follow=True
         )
         self.assertRedirects(
-            response, f'/auth/login/?next=/posts/{PostFormTests.post.id}/edit/')
+            response, (
+                f'/auth/login/?next=/posts/{PostFormTests.post.id}/edit/')
+            )
         self.assertEqual(Post.objects.count(), posts_count)
