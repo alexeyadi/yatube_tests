@@ -47,7 +47,7 @@ class PostFormTests(TestCase):
         self.assertRedirects(response, reverse(
             'posts:profile', kwargs={'username': f'{self.user}'}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertTrue(Post.objects.filter(text=form_data['text']))
+        self.assertTrue(Post.objects.filter(text=form_data['text']).exists())
 
     def test_create_post_for_nonauth_client(self):
         """Валидная форма создает запись в Post."""
@@ -76,7 +76,7 @@ class PostFormTests(TestCase):
         )
         self.assertRedirects(response, '/auth/login/?next=/create/')
         self.assertEqual(Post.objects.count(), posts_count)
-        self.assertTrue(Post.objects.filter(text=form_data['text']))
+        self.assertTrue(Post.objects.filter(text=form_data['text']).exists())
 
     def test_post_edit_for_auth(self):
         """Валидация формы редактирования поста для авторизованного"""
