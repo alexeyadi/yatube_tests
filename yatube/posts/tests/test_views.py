@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from posts.models import Post, Group
 from django import forms
+from django.core.cache import cache
 
 from posts.views import COUNT_POSTS
 
@@ -34,6 +35,7 @@ class PostPagesTest(TestCase):
         self.auth_client.force_login(self.user)
         self.post_author = Client()
         self.post_author.force_login(self.author)
+        cache.clear()
 
     def test_pages_and_url_for_auth_client(self):
         """Каждый URL используется правильный шаблон для авторизованного"""
@@ -87,6 +89,17 @@ class PostPagesTest(TestCase):
         self.assertEqual(post_author, 'auth')
         self.assertEqual(post_text, 'Тестовый текст')
         self.assertEqual(post_group, 'Тестовая группа')
+
+    def test_index_page_cache(self):
+        """Шаблон index с кешированием"""
+        response = self.auth_client.get(reverse('posts:index'))
+        self.post.text = 'Изменили текст'
+        self.post.save()
+        response_cache = self.auth_client.get(reverse('posts:index'))
+        self.assertEqual(response.content, response_cache.content)
+        cache.clear()
+        response_clear = self.auth_client.get(reverse('posts:index'))
+        self.assertNotEqual(response_cache.content, response_clear.content)
 
     def test_group_list_context(self):
         """Шаблон group_list с правильным контекстом"""
@@ -175,6 +188,7 @@ class PaginatorViewsTest(TestCase):
         self.guest_client = Client()
         self.auth_client = Client()
         self.auth_client.force_login(self.user)
+        cache.clear()
 
     def test_first_page_contains_ten_records(self):
         urls = {

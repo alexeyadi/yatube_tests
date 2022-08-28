@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from http import HTTPStatus
-
+from django.core.cache import cache
 from posts.models import Post, Group
 
 User = get_user_model()
@@ -30,6 +30,7 @@ class PostURLTests(TestCase):
         self.auth_client.force_login(self.user)
         self.post_author = Client()
         self.post_author.force_login(self.author)
+        cache.clear()
 
     def test_pages_for_guest(self):
         """Доступность страниц для гостя"""
